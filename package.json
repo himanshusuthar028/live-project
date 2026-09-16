@@ -1,0 +1,9 @@
+{
+  "name": "farewell-fund",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "test": "node settlement.test.js",
+    "start": "node server.js"
+  }
+}

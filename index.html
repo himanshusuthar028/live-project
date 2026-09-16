@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#102a2b">
+  <title>Farewell Fund</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark">+</span><span>Farewell Fund</span></div>
+      <button class="text-button" id="reset-button" type="button">Reset</button>
+    </header>
+
+    <section class="intro">
+      <p class="eyebrow">A clear view of the group pool</p>
+      <h1 id="fund-title">Manager's farewell gift</h1>
+      <p class="lede">Track who has paid, what each person owes, and the fewest payments needed to settle up.</p>
+    </section>
+
+    <section class="setup-panel" aria-label="Fund setup">
+      <label>Fund name<input id="fund-name" type="text" maxlength="60" value="Manager's farewell gift"></label>
+      <label>Pool target <span class="input-prefix">₹</span><input id="fund-total" type="number" min="0" step="0.01" value="0" inputmode="decimal" aria-describedby="fund-total-error"><small class="field-error" id="fund-total-error" role="alert" hidden></small></label>
+    </section>
+
+    <section class="summary-grid" aria-label="Fund summary">
+      <article class="summary-card accent"><span>Still to collect</span><strong id="remaining">₹0.00</strong><small id="collection-note">Everyone is covered</small></article>
+      <article class="summary-card"><span>Collected</span><strong id="collected">₹0.00</strong><small id="collected-note">of ₹0.00 target</small></article>
+      <article class="summary-card"><span>Fair share each</span><strong id="share">₹0.00</strong><small id="people-count">0 people</small></article>
+    </section>
+
+    <div class="content-grid">
+      <section class="panel people-panel">
+        <div class="panel-heading"><div><p class="eyebrow">01 / contributions</p><h2>People & payments</h2></div><button class="button button-dark" id="add-person" type="button"><span>+</span> Add person</button></div>
+        <form class="add-person-form" id="add-person-form" hidden>
+          <label>Name<input id="new-person-name" type="text" maxlength="40" placeholder="e.g. Priya" autocomplete="off" required></label>
+          <label>Initial payment <span class="input-prefix">₹</span><input id="new-person-paid" type="number" min="0" step="0.01" value="0" inputmode="decimal"></label>
+          <div class="add-person-actions"><button class="text-button" id="cancel-add-person" type="button">Cancel</button><button class="button button-dark" type="submit">Add to group</button></div>
+          <p class="form-error" id="add-person-error" role="alert" hidden></p>
+        </form>
+        <div class="table-head"><span>Person</span><span>Paid so far</span><span>Balance</span><span aria-hidden="true"></span></div>
+        <div id="people-list"></div>
+        <p class="empty-state" id="people-empty">Add everyone in the group to start tracking.</p>
+      </section>
+
+      <section class="panel settlement-panel">
+        <div class="panel-heading"><div><p class="eyebrow">02 / finish cleanly</p><h2>Settle up</h2></div><span class="count-pill" id="transfer-count">0 transfers</span></div>
+        <p class="panel-caption" id="settlement-caption">A compact plan that gets every balance back to zero.</p>
+        <div id="settlement-status" aria-live="polite"></div>
+        <div id="transfers-list" class="transfers-list"></div>
+      </section>
+    </div>
+    <p class="saved-note" id="saved-note">Changes save automatically in this browser.</p>
+  </main>
+  <script src="settlement.js" defer></script>
+  <script src="app.js" defer></script>
+</body>
+</html>
