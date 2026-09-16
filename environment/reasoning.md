@@ -1,6 +1,6 @@
 # Engineering Reasoning
 
-This document records high-level engineering decisions, not private chain-of-thought.
+This document records high-level engineering decisions, not private chain-of-thought or hidden model reasoning.
 
 ## Requirement Interpretation
 

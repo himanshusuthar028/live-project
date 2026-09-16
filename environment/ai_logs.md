@@ -1,76 +1,123 @@
-# AI Usage Log
+# AI-Assisted Development Log
 
-This log records the AI-assisted work visible in the current project session. It is a factual summary, not a full private reasoning transcript.
+This is a high-level factual record of AI-assisted development work visible in the current coding workspace. It does not include private chain-of-thought, hidden reasoning, or an invented transcript.
 
-## Project Phases
+## Phase 1 - Initial Problem Analysis
 
-### 2026-09-16: Initial implementation
+AI assistance was used to interpret the Farewell Fund Tracker requirements and identify the core workflow:
 
-- **AI tool used:** GitHub Copilot coding agent in VS Code, using workspace file inspection, patch editing, terminal commands, and Node tests.
-- **User/task request:** Build a general Farewell Fund/group-pool tracker from an initially empty repository.
-- **Instruction/prompt used:** Implement the supplied group-pool problem, inspect the repository, create a runnable solution, test it, and document how to run it.
-- **Implemented or changed:** Created the dependency-free HTML/CSS/JavaScript application, Node static server, settlement engine, package scripts, tests, and root README instructions.
-- **Testing/debugging:** Ran `npm test`, JavaScript syntax checks, HTTP asset checks, and whitespace validation.
-- **Bugs discovered:** An initial settlement test fixture expected an incorrect transfer amount.
-- **Fixes made:** Corrected the test fixture after comparing it with calculated balances.
+- Configure a fund name and pool target.
+- Add people and record payments.
+- Calculate equal fair shares.
+- Show individual balances, collected amount, and remaining amount.
+- Generate settlement transfers between people who owe and people who paid extra.
 
-### 2026-09-16: Add-person interaction fix
+## Phase 2 - Initial Implementation
 
-- **AI tool used:** GitHub Copilot coding agent with file reads, patch edits, terminal checks, and a temporary DOM test harness.
-- **User/task request:** Fix the non-responsive Add person control and verify adding multiple people, payment edits, target changes, balances, and settlements.
-- **Instruction/prompt used:** Inspect `index.html`, `app.js`, and `styles.css`; identify runtime or event-listener failures; implement and test the fix without creating a new project.
-- **Implemented or changed:** Added the inline Add person form, validation, cancel behavior, multiple-person support, persistence handling, and expanded regression tests.
-- **Testing/debugging:** Ran syntax checks, `npm test`, live HTTP checks, and a browser-like DOM flow.
-- **Bugs discovered:** The app initially used hard-coded demo records and needed stronger invalid-state handling. A later DOM run exposed a JavaScript global-name collision.
-- **Fixes made:** Removed demo data, normalised persisted state, added input validation, and renamed app-local calculation references to avoid the collision.
+The project was implemented as a small vanilla browser application with a Node.js static server.
 
-### 2026-09-16: JavaScript interaction root-cause fix
+Implemented areas included:
 
-- **AI tool used:** GitHub Copilot coding agent with static inspection, server checks, jsdom execution, and patch editing.
-- **User/task request:** Diagnose why the whole frontend appeared non-interactive and verify the actual Add person flow.
-- **Instruction/prompt used:** Verify script tags and paths, check syntax and serving, inspect runtime errors and event listeners, then test the real interaction.
-- **Implemented or changed:** Added deferred script loading and DOM-safe initialization. Renamed the destructured `calculatePlan`/`formatMoney` variables in `app.js` to avoid a browser `SyntaxError` caused by `settlement.js`'s top-level declarations.
-- **Testing/debugging:** The jsdom harness captured `Identifier 'calculatePlan' has already been declared`, then passed after the fix. It exercised six additions, target changes, payment edits, settlement updates, and reported no browser-like runtime errors.
-- **Bugs discovered:** The name collision prevented `app.js` from parsing, so no event listeners were registered.
-- **Fixes made:** Renamed the conflicting identifiers and verified the served app.
+- HTML interface in `index.html`.
+- CSS layout and responsive styling in `styles.css`.
+- Browser state, event handling, validation, localStorage persistence, and rendering in `app.js`.
+- Currency conversion, fair-share calculation, balances, shortfall handling, and settlement logic in `settlement.js`.
+- Static file serving in `server.js`.
+- Node.js regression tests in `settlement.test.js`.
+- `npm start` and `npm test` scripts in `package.json`.
 
-### 2026-09-16: Under-collected settlement clarification
+No React, database, authentication, external API, or other unverified technology was introduced.
 
-- **AI tool used:** GitHub Copilot coding agent with settlement inspection, patch editing, Node tests, and jsdom checks.
-- **User/task request:** Distinguish the amount still needed to complete an under-collected pool from transfers that redistribute available credits.
-- **Instruction/prompt used:** Verify the ₹6000 and ₹8000 scenarios, avoid false fully-settled messaging, and retain only valid transfers.
-- **Implemented or changed:** Added `shortfallCents` and `isFullyCollected`; added an under-collection alert and a redistribution-specific settlement caption; changed the empty settlement state so it cannot claim full settlement while money is missing.
-- **Testing/debugging:** Added exact regression assertions for the ₹8000 scenario, confirmed the original ₹6000 scenario, ran `npm test`, syntax checks, and a jsdom UI render check.
-- **Bugs discovered:** The prior display could imply complete settlement whenever the transfer list was empty, even if the pool target was not collected.
-- **Fixes made:** Added explicit shortfall status and under-collection messaging.
+## Phase 3 - UI Debugging
 
-### 2026-09-16: Messy contribution import
+The initial UI had a non-working **Add person** interaction. AI assistance inspected the HTML script tags, script ordering, DOM selectors, event listeners, and runtime behavior. The interaction was corrected, and the Add person form was tested successfully with multiple people and payment values.
 
-- **AI tool used:** GitHub Copilot coding agent with workspace inspection, patch editing, Node tests, a local static server, and a temporary jsdom harness.
-- **User/task request:** Add CSV import for messy past contributions without breaking manual entry, including normalization, duplicate handling, merge reporting, invalid-row reporting, and end-to-end verification.
-- **Instruction/prompt used:** Extend the existing Farewell Fund application only; support valid INR formats, malformed rows, capitalization/spacing variants, duplicate rows, merged people, and automatic flow into balances and settlement.
-- **Implemented or changed:** Added `importer.js`, `importer.test.js`, `sample-contributions.csv`, an Import Contributions UI section, sample download link, import summary/report rendering, FileReader compatibility, and package test coverage. Updated environment documentation.
-- **Testing/debugging:** Ran settlement and importer suites, JavaScript syntax checks, static server checks, and uploaded the sample CSV through a browser-like DOM. Verified five cleaned people, 10 rows read, eight imported, zero exact duplicates in the sample, three name merges, two rejected rows, ₹4,500 collected, and manual Add person after import.
-- **Bugs discovered:** jsdom's File implementation did not provide `file.text()` even though browser File implementations commonly do.
-- **Fixes made:** Added a `FileReader` fallback so file imports work across browser-like environments.
-- **Duplicate rule:** Exact duplicates use the same trimmed, case-insensitive name field and trimmed amount field. Different amount formatting is retained as a separate contribution; all remaining rows for a normalized name are combined.
+A browser-like runtime check later verified that the interaction failure came from a JavaScript name collision between top-level settlement declarations and app declarations. The app-local references were renamed, script loading was made deferred, and DOM-safe initialization was retained.
 
-## Final Verification Recorded
+## Phase 4 - Functional Testing
 
-- `npm test` passed after the documented changes.
-- `node --check app.js` and `node --check settlement.js` passed.
-- Static server asset checks returned the expected application files.
-- Browser-like DOM checks observed the Add person flow and settlement updates without captured runtime errors.
-- The ₹6000 fully collected case and ₹8000 under-collected case were both verified.
-- The sample CSV import and manual entry after import were verified without captured browser-like runtime errors.
+The application was tested with a ₹6000 target and six people. Verification covered:
 
-## FULL CHAT TRANSCRIPT TO BE ADDED
+- Six participants.
+- ₹1000 fair share per person.
+- ₹6000 collected.
+- Individual debtor and creditor balances.
+- Valid settlement transfers.
+- Payment editing and automatic recalculation.
 
-The complete ChatGPT/Copilot conversation transcript is not stored in this repository. It must be pasted here later if a full transcript is required.
+## Phase 5 - Under-Collected Pool Handling
 
-### Transcript Placeholder
+The application was tested with a ₹8000 target and ₹6000 collected. It was updated to distinguish available-credit redistribution from the missing pool amount.
 
-```text
-[Paste the complete conversation transcript here when it is available.
-Do not reconstruct or infer missing messages.]
-```
+The UI now clearly reports that ₹2000 still needs to be collected before everyone can be fully settled. It does not claim full settlement while the pool is under-collected.
+
+## Phase 6 - The Twist: Messy Contribution Import
+
+A CSV import requirement was added for historical contribution data containing:
+
+- Duplicate entries.
+- Different name capitalization and whitespace formatting.
+- Currency symbols, grouping commas, and decimal amounts.
+- Empty names and invalid amounts.
+
+Implemented import work included:
+
+- CSV file upload in the existing UI.
+- A downloadable sample CSV.
+- CSV parsing with quoted-field support.
+- Name normalization and merging.
+- Amount normalization and non-negative validation.
+- Conservative exact duplicate handling.
+- Invalid-row reporting with row number and reason.
+- Merge reporting.
+- Import summary counters.
+- Recalculation of people, payments, balances, fair shares, shortfall, and settlement transfers.
+
+## Phase 7 - Import Testing
+
+The provided sample CSV was tested through the browser-like import flow. It included valid contributions, Rahul/rahul/RAHUL capitalization variants, multiple currency formats, `Rohit,abc`, and a missing-name row.
+
+Observed sample result:
+
+- Rows read: 10.
+- Imported: 8.
+- Duplicates removed: 0, because the sample did not contain an exact duplicate row.
+- Names merged: 3.
+- Rejected: 2.
+
+Additional test data verified one exact duplicate removal and separately formatted same-value contributions remaining legitimate. Malformed unterminated CSV was also tested and reported without crashing the application.
+
+## Phase 8 - Documentation
+
+AI assistance was used to update the documentation in `environment/`:
+
+- `environment/README.md` documents the final project, setup, workflow, calculations, import rules, validation, tests, and limitations.
+- `environment/reasoning.md` documents high-level engineering decisions and formulas.
+- `environment/ai_logs.md` records this chronological high-level activity.
+
+## Phase 9 - Final Verification
+
+The final verification covered:
+
+- Application startup with `npm start`.
+- Manual Add person and multiple-person entry.
+- Payment editing and automatic dashboard updates.
+- Fund name and target editing.
+- Reset and validation behavior.
+- ₹6000 fully collected settlement case.
+- ₹8000 under-collected settlement case.
+- CSV import and sample download asset.
+- Name normalization and merging.
+- Currency amount normalization.
+- Exact duplicate handling.
+- Invalid-row reporting.
+- Malformed CSV handling.
+- Imported data flowing into balances and settlements.
+- Manual entry after import.
+- `npm test` passing for settlement and importer suites.
+- JavaScript syntax and static-server asset checks.
+- No secret-like files found in the repository.
+
+## Transcript Availability
+
+Full chat transcript is not automatically available inside the coding workspace. This document records the verified high-level AI-assisted development activities rather than fabricating a transcript.

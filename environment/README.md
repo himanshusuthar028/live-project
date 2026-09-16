@@ -4,9 +4,9 @@
 
 Farewell Fund
 
-## Purpose
+## Project Objective
 
-Farewell Fund is a browser-based group-pool tracker. It helps an organiser set a budget, record what each person has paid, see fair shares and balances, and generate transfers for settling contributions.
+Farewell Fund is a browser-based group-pool tracker. It helps an organiser set a budget, record what each person has paid, see fair shares and balances, import messy historical contributions, and generate transfers for settling contributions.
 
 ## Problem Summary
 
@@ -107,7 +107,7 @@ PORT=3001 npm start
 npm test
 ```
 
-The tests execute `settlement.test.js` directly with Node.js.
+The test command executes both `settlement.test.js` and `importer.test.js` directly with Node.js.
 
 ## How to Use the Application
 
