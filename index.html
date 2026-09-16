@@ -25,6 +25,15 @@
       <label>Pool target <span class="input-prefix">₹</span><input id="fund-total" type="number" min="0" step="0.01" value="0" inputmode="decimal" aria-describedby="fund-total-error"><small class="field-error" id="fund-total-error" role="alert" hidden></small></label>
     </section>
 
+    <section class="import-panel" aria-label="Import contributions">
+      <div class="import-copy"><p class="eyebrow">Optional / past payments</p><h2>Import contributions</h2><p>Upload a CSV with <code>name,amount</code> columns. Repeated names are combined and malformed rows are reported.</p><a href="sample-contributions.csv" download>Download sample CSV</a></div>
+      <form id="import-form" class="import-form">
+        <label>CSV file<input id="contributions-file" type="file" accept=".csv,text/csv" required></label>
+        <button class="button button-dark" type="submit">Import</button>
+      </form>
+      <div id="import-summary" class="import-summary" aria-live="polite" hidden></div>
+    </section>
+
     <section class="summary-grid" aria-label="Fund summary">
       <article class="summary-card accent"><span>Still to collect</span><strong id="remaining">₹0.00</strong><small id="collection-note">Everyone is covered</small></article>
       <article class="summary-card"><span>Collected</span><strong id="collected">₹0.00</strong><small id="collected-note">of ₹0.00 target</small></article>
@@ -55,6 +64,7 @@
     <p class="saved-note" id="saved-note">Changes save automatically in this browser.</p>
   </main>
   <script src="settlement.js" defer></script>
+  <script src="importer.js" defer></script>
   <script src="app.js" defer></script>
 </body>
 </html>

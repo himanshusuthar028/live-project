@@ -10,6 +10,8 @@ The core requirement is a simple organiser-facing tracker for an arbitrary share
 
 A static HTML/CSS/JavaScript application with a small Node.js file server is appropriate because the problem does not require authentication, server persistence, an API, or multi-user access. Keeping calculations in `settlement.js` makes the most important behavior independently testable. `app.js` is responsible for browser state and presentation.
 
+The import path is isolated in `importer.js`. This keeps messy-file parsing and cleaning separate from the existing pool calculation engine, while cleaned people are passed into the same `app.js` state used by manual entry.
+
 ## Money Representation
 
 All monetary calculations use integer cents. An input amount is converted with:
@@ -90,6 +92,18 @@ The calculation does not require a minimum payment. A zero payment creates a nor
 - Invalid input is reported in the UI and is not committed to the calculation state.
 - Zero people produce a zero fair share and an appropriate pool shortfall.
 
+## Import Cleaning Decisions
+
+The importer expects `name,amount` CSV columns and uses a small CSV state machine so quoted commas are supported. It also joins unquoted extra amount fields, allowing common input such as `Priya,₹1,000` to be interpreted as one amount.
+
+Names are normalized by trimming, collapsing whitespace, and case-folding for comparison. The first clean display spelling is preserved. This safely merges capitalization and spacing variants without fuzzy matching that could merge unrelated people.
+
+Amounts remove an optional `₹` prefix and grouping commas, then require a non-negative number with at most two decimal places. Invalid names and amounts become structured rejected-row entries.
+
+The duplicate rule is deliberately conservative: a later row is considered an exact duplicate when its trimmed, case-insensitive name field and trimmed amount field match an earlier row. Different formatting, such as `₹500` versus `500.00`, is not silently removed, so it can represent a separate legitimate payment. After duplicate filtering, all remaining contributions for a normalized name are summed.
+
+The UI displays rows read, valid rows imported, exact duplicates removed, names merged, and rejected rows. It also lists merge pairs and rejected row numbers/reasons. Imported totals are added to matching existing manual people and then go through the normal fair-share, balance, and settlement render path.
+
 ## Persistence Decision
 
 `localStorage` is sufficient for a single organiser using one browser. It keeps the project simple and requires no server database. If storage is unavailable, the app continues for the current session and displays that persistence is unavailable.
@@ -105,6 +119,10 @@ The Node test suite checks:
 - Fair-share rounding.
 - The original ₹6000 six-person example.
 - The ₹8000 under-collected example.
+- CSV currency parsing and quoted/unquoted comma handling.
+- Duplicate-row removal and differently formatted same-value payments.
+- Case/whitespace name merging.
+- Invalid-row reporting for missing names and malformed/negative amounts.
 - No self, zero, or negative transfers.
 
 Additional browser-like DOM checks exercised adding six people, changing the target, editing a payment, checking settlement counts, and observing the under-collection message without runtime errors.

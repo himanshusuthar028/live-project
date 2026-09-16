@@ -24,13 +24,14 @@ A group is contributing equally to a shared gift or other pool, but people may p
 - Show an explicit shortfall message when the target is not fully collected.
 - Reset the fund.
 - Persist state in browser `localStorage`.
+- Import messy CSV contribution lists with a cleaning report.
 - Validate names, payments, budgets, and numeric values.
 
 ## How the Application Works
 
 The browser loads `index.html`, which loads `settlement.js` followed by `app.js` using deferred script tags. `settlement.js` provides the calculation functions. `app.js` connects those functions to the DOM, manages user input, renders summaries and transfers, and saves state locally.
 
-`server.js` is a small Node.js static file server. It serves the application files and does not store application data on the server.
+`importer.js` parses CSV contribution files, normalizes names and amounts, removes exact duplicate rows, combines contributions for the same normalized name, and returns rejected-row and merge details. `server.js` is a small Node.js static file server. It serves the application files and does not store application data on the server.
 
 ## Technology Stack
 
@@ -55,6 +56,9 @@ There is no React, frontend framework, database, authentication system, external
 ├── settlement.js
 ├── settlement.test.js
 ├── styles.css
+├── sample-contributions.csv
+├── importer.js
+├── importer.test.js
 └── environment/
     ├── README.md
     ├── ai_logs.md
@@ -66,6 +70,9 @@ There is no React, frontend framework, database, authentication system, external
 - `index.html`: Application markup, controls, summaries, people list, and settlement section.
 - `styles.css`: Responsive layout and visual styling.
 - `app.js`: Browser state, local persistence, event listeners, validation, rendering, and user interactions.
+- `importer.js`: CSV parsing, name/amount normalization, duplicate handling, merging, and import reporting.
+- `importer.test.js`: Import parser and cleaning tests.
+- `sample-contributions.csv`: Messy sample input used for import testing and the download template.
 - `settlement.js`: Currency conversion, INR formatting, fair-share calculation, balances, shortfall detection, and transfers.
 - `settlement.test.js`: Node-based regression tests for normal cases, edge cases, and required examples.
 - `server.js`: Static HTTP server. It uses `PORT` when provided and otherwise listens on port `3000`.
@@ -112,6 +119,8 @@ The tests execute `settlement.test.js` directly with Node.js.
 6. Read each person's balance and the settlement section.
 7. Use **Reset** to clear the current fund after confirming the reset.
 
+To import past payments, choose a CSV with `name,amount` columns, then select **Import**. Currency values such as `1000`, `1000.00`, `₹1000`, `₹1,000`, and `1,000.00` are accepted. Invalid rows are retained in the visible report with their row number and reason.
+
 ## Input and Output Behavior
 
 Inputs are the fund name, non-negative target amount, participant name, and non-negative participant payment. The application immediately updates the displayed summaries and settlement list after valid changes.
@@ -125,6 +134,7 @@ The output includes:
 - Amount still needed to reach the target.
 - Each person's paid amount and balance.
 - Transfers from people who owe to people who paid extra.
+- Import totals, rejected rows, removed exact duplicates, and normalized-name merges.
 
 ## Settlement Functionality
 
@@ -159,6 +169,15 @@ Handled cases include:
 - Empty or malformed participant records.
 
 Fair shares are represented in integer cents. When cents cannot divide evenly, the remainder cents are assigned to the first participants in list order.
+
+### Import Rules
+
+- Names are trimmed, repeated whitespace is collapsed, and comparison is case-insensitive. The first clean spelling is used for display.
+- Contributions with the same normalized name are combined.
+- A duplicate is removed only when a later row has the same trimmed, case-insensitive name field and the same trimmed amount field. This removes repeated identical imported rows while allowing separately formatted or otherwise different same-value payments to count as legitimate contributions.
+- Amounts accept optional rupee symbols, grouping commas, and up to two decimal places. Empty, negative, malformed, and non-numeric amounts are rejected.
+- Empty names, malformed rows, and invalid amounts are reported rather than silently discarded.
+- Imported totals are added to an existing manually entered person when their normalized name matches; otherwise a new person is added.
 
 ## Environment Variables
 

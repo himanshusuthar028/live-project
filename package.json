@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "test": "node settlement.test.js",
+    "test": "node settlement.test.js && node importer.test.js",
     "start": "node server.js"
   }
 }

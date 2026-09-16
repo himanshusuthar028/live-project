@@ -44,6 +44,17 @@ This log records the AI-assisted work visible in the current project session. It
 - **Bugs discovered:** The prior display could imply complete settlement whenever the transfer list was empty, even if the pool target was not collected.
 - **Fixes made:** Added explicit shortfall status and under-collection messaging.
 
+### 2026-09-16: Messy contribution import
+
+- **AI tool used:** GitHub Copilot coding agent with workspace inspection, patch editing, Node tests, a local static server, and a temporary jsdom harness.
+- **User/task request:** Add CSV import for messy past contributions without breaking manual entry, including normalization, duplicate handling, merge reporting, invalid-row reporting, and end-to-end verification.
+- **Instruction/prompt used:** Extend the existing Farewell Fund application only; support valid INR formats, malformed rows, capitalization/spacing variants, duplicate rows, merged people, and automatic flow into balances and settlement.
+- **Implemented or changed:** Added `importer.js`, `importer.test.js`, `sample-contributions.csv`, an Import Contributions UI section, sample download link, import summary/report rendering, FileReader compatibility, and package test coverage. Updated environment documentation.
+- **Testing/debugging:** Ran settlement and importer suites, JavaScript syntax checks, static server checks, and uploaded the sample CSV through a browser-like DOM. Verified five cleaned people, 10 rows read, eight imported, zero exact duplicates in the sample, three name merges, two rejected rows, ₹4,500 collected, and manual Add person after import.
+- **Bugs discovered:** jsdom's File implementation did not provide `file.text()` even though browser File implementations commonly do.
+- **Fixes made:** Added a `FileReader` fallback so file imports work across browser-like environments.
+- **Duplicate rule:** Exact duplicates use the same trimmed, case-insensitive name field and trimmed amount field. Different amount formatting is retained as a separate contribution; all remaining rows for a normalized name are combined.
+
 ## Final Verification Recorded
 
 - `npm test` passed after the documented changes.
@@ -51,6 +62,7 @@ This log records the AI-assisted work visible in the current project session. It
 - Static server asset checks returned the expected application files.
 - Browser-like DOM checks observed the Add person flow and settlement updates without captured runtime errors.
 - The ₹6000 fully collected case and ₹8000 under-collected case were both verified.
+- The sample CSV import and manual entry after import were verified without captured browser-like runtime errors.
 
 ## FULL CHAT TRANSCRIPT TO BE ADDED
 

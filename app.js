@@ -1,5 +1,6 @@
 const calculateFundPlan = window.FarewellFund.calculatePlan;
 const formatFundMoney = window.FarewellFund.formatMoney;
+const importContributionFile = window.FarewellImporter.importContributions;
 const storageKey = 'farewell-fund-state';
 const defaultState = {
   name: 'Farewell gift',
@@ -35,6 +36,9 @@ const elements = {
   title: document.querySelector('#fund-title'),
   total: document.querySelector('#fund-total'),
   totalError: document.querySelector('#fund-total-error'),
+  importForm: document.querySelector('#import-form'),
+  contributionsFile: document.querySelector('#contributions-file'),
+  importSummary: document.querySelector('#import-summary'),
   remaining: document.querySelector('#remaining'),
   collectionNote: document.querySelector('#collection-note'),
   collected: document.querySelector('#collected'),
@@ -108,6 +112,31 @@ function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[character]));
 }
 
+function normalizeNameKey(value) {
+  return String(value || '').trim().replace(/\s+/g, ' ').toLocaleLowerCase();
+}
+
+function renderImportSummary(report) {
+  const invalidRows = report.invalidRows.length
+    ? `<div class="import-errors"><strong>Rejected rows</strong>${report.invalidRows.map((row) => `<div>Row ${row.rowNumber} &rarr; rejected &rarr; ${escapeHtml(row.reason)} <span>${escapeHtml(row.original)}</span></div>`).join('')}</div>`
+    : '';
+  const merges = report.merges.length
+    ? `<div class="import-merges"><strong>Merged names</strong>${report.merges.map((merge) => `<div>${escapeHtml(merge.from)} &rarr; ${escapeHtml(merge.to)}</div>`).join('')}</div>`
+    : '';
+  elements.importSummary.innerHTML = `<div class="import-stats"><span><b>${report.rowsRead}</b> Rows read</span><span><b>${report.imported}</b> Imported</span><span><b>${report.duplicatesRemoved}</b> Duplicates removed</span><span><b>${report.namesMerged}</b> Names merged</span><span><b>${report.rejected}</b> Rejected</span></div>${merges}${invalidRows}`;
+  elements.importSummary.hidden = false;
+}
+
+function readImportFile(file) {
+  if (typeof file.text === 'function') return file.text();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ''));
+    reader.onerror = () => reject(new Error('Could not read the selected CSV file.'));
+    reader.readAsText(file);
+  });
+}
+
 elements.name.addEventListener('input', (event) => { state.name = event.target.value; saveAndRender(); });
 elements.total.addEventListener('input', (event) => {
   const value = Number(event.target.value);
@@ -119,6 +148,32 @@ elements.total.addEventListener('input', (event) => {
   elements.totalError.hidden = true;
   state.total = value;
   saveAndRender();
+});
+elements.importForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const file = elements.contributionsFile.files[0];
+  if (!file) return;
+  try {
+    const result = importContributionFile(await readImportFile(file));
+    result.people.forEach((importedPerson) => {
+      const existing = state.people.find((person) => normalizeNameKey(person.name) === importedPerson.key);
+      if (existing) {
+        existing.paid += importedPerson.amount;
+        if (existing.name.trim() !== importedPerson.displayName) {
+          result.report.namesMerged += 1;
+          result.report.merges.push({ from: importedPerson.displayName, to: existing.name.trim() });
+        }
+      } else {
+        state.people.push({ id: `${Date.now()}-${Math.random().toString(36).slice(2)}`, name: importedPerson.displayName, paid: importedPerson.amount });
+      }
+    });
+    renderImportSummary(result.report);
+    elements.importForm.reset();
+    saveAndRender();
+  } catch (error) {
+    elements.importSummary.innerHTML = `<div class="form-error">Import failed: ${escapeHtml(error.message)}</div>`;
+    elements.importSummary.hidden = false;
+  }
 });
 elements.addButton.addEventListener('click', () => {
   elements.addForm.hidden = false;
