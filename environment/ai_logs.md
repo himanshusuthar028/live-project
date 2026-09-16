@@ -1,123 +1,128 @@
 # AI-Assisted Development Log
 
-This is a high-level factual record of AI-assisted development work visible in the current coding workspace. It does not include private chain-of-thought, hidden reasoning, or an invented transcript.
+## Full AI Conversation Transcript
 
-## Phase 1 - Initial Problem Analysis
+This transcript contains the actual user requests and assistant responses materially available in the current coding workspace context. Tool telemetry, hidden chain-of-thought, secrets, and system/developer instructions are excluded. Where the original historical message is not available as raw workspace content, that limitation is stated instead of inventing text.
 
-AI assistance was used to interpret the Farewell Fund Tracker requirements and identify the core workflow:
+### USER - Initial Project Request
 
-- Configure a fund name and pool target.
-- Add people and record payments.
-- Calculate equal fair shares.
-- Show individual balances, collected amount, and remaining amount.
-- Generate settlement transfers between people who owe and people who paid extra.
+> You are my AI coding agent for a timed software development assessment.
+>
+> Build something so the organiser can track a shared farewell-gift pool and settle contributions fairly. Start with equal shares and simple balances, then settlements. Build for any pool and organiser, not just the ₹6000 example.
+>
+> Inspect the repository first. Implement all required functionality, validation, edge cases, testing, debugging, documentation, and a runnable submission. Do not stop at an explanation; actually inspect, create, edit, run, test, and fix the project.
 
-## Phase 2 - Initial Implementation
+### AI - Initial Implementation Response
 
-The project was implemented as a small vanilla browser application with a Node.js static server.
+The repository was inspected and found to contain only a placeholder README. A dependency-free browser application with a small Node.js static server was implemented. The application includes configurable fund details, participant payments, fair shares, balances, settlement transfers, localStorage persistence, validation, responsive styling, and Node-based tests.
 
-Implemented areas included:
+The settlement engine was tested with normal, rounding, overpayment, and multiple-person cases. The application was served with `npm start`, and `npm test` passed.
 
-- HTML interface in `index.html`.
-- CSS layout and responsive styling in `styles.css`.
-- Browser state, event handling, validation, localStorage persistence, and rendering in `app.js`.
-- Currency conversion, fair-share calculation, balances, shortfall handling, and settlement logic in `settlement.js`.
-- Static file serving in `server.js`.
-- Node.js regression tests in `settlement.test.js`.
-- `npm start` and `npm test` scripts in `package.json`.
+### USER - Add Person Bug Request
 
-No React, database, authentication, external API, or other unverified technology was introduced.
+> The application UI is loading correctly, but there is a functional bug: when I click the "Add person" button in the "People & payments" section, nothing happens and no form/modal/input appears.
+>
+> Inspect `index.html`, `app.js`, and `styles.css`; check event listeners, selectors, IDs/classes, and runtime errors. Make Add person open a form containing a person's name and initial payment. Support multiple people, payment updates, automatic recalculation, settlement updates, validation, and actual testing.
 
-## Phase 3 - UI Debugging
+### AI - Add Person Fix Response
 
-The initial UI had a non-working **Add person** interaction. AI assistance inspected the HTML script tags, script ordering, DOM selectors, event listeners, and runtime behavior. The interaction was corrected, and the Add person form was tested successfully with multiple people and payment values.
+A visible inline Add person form was added with name and initial payment fields, submit/cancel behavior, validation, and support for multiple participants. Existing inline payment editing and settlement recalculation were preserved. Tests were added for the requested six-person behavior and the application was served for verification.
 
-A browser-like runtime check later verified that the interaction failure came from a JavaScript name collision between top-level settlement declarations and app declarations. The app-local references were renamed, script loading was made deferred, and DOM-safe initialization was retained.
+### USER - Full Interactivity Diagnosis Request
 
-## Phase 4 - Functional Testing
+> The UI is already created, but I need the entire application fully functional. Controls such as "Add person" are not reliably working.
+>
+> Inspect all existing files. Verify JavaScript loading, script paths, server serving, syntax, runtime errors, DOM selectors, event listeners, and DOM initialization. Test Add person, multiple people, payment updates, target changes, balances, settlement, validation, reset, the ₹6000 example, and the ₹8000 under-collected example. Do not just explain; modify, run, test, and fix the current project.
 
-The application was tested with a ₹6000 target and six people. Verification covered:
+### AI - Runtime Root Cause Response
 
-- Six participants.
-- ₹1000 fair share per person.
-- ₹6000 collected.
-- Individual debtor and creditor balances.
-- Valid settlement transfers.
-- Payment editing and automatic recalculation.
+Static inspection confirmed the script tags and server paths. A browser-like runtime check exposed the actual error:
 
-## Phase 5 - Under-Collected Pool Handling
+```text
+SyntaxError: Identifier 'calculatePlan' has already been declared
+```
 
-The application was tested with a ₹8000 target and ₹6000 collected. It was updated to distinguish available-credit redistribution from the missing pool amount.
+`settlement.js` declared top-level names that conflicted with the destructured names in `app.js`. The app-local references were renamed, scripts were loaded with `defer`, and DOM-safe initialization was retained. The real Add person flow then worked, including six additions, target changes, payment edits, settlement updates, and no captured runtime errors.
 
-The UI now clearly reports that ₹2000 still needs to be collected before everyone can be fully settled. It does not claim full settlement while the pool is under-collected.
+### USER - Under-Collected Settlement Request
 
-## Phase 6 - The Twist: Messy Contribution Import
+> The ₹8000 test revealed an important settlement edge case. Target is ₹8000, collected is ₹6000, and there are 6 people. Fair share is approximately ₹1333.33 each and ₹2000 is still uncollected.
+>
+> The settlement section must distinguish the amount still needed to complete the pool from transfers needed to redistribute existing overpayments. Show a clear message such as: "₹2000 still needs to be collected before everyone can be fully settled." Verify both the ₹6000 and ₹8000 scenarios.
 
-A CSV import requirement was added for historical contribution data containing:
+### AI - Under-Collection Response
 
-- Duplicate entries.
-- Different name capitalization and whitespace formatting.
-- Currency symbols, grouping commas, and decimal amounts.
-- Empty names and invalid amounts.
+The settlement plan was extended with `shortfallCents` and `isFullyCollected`. The UI now reports the missing amount, describes listed transfers as redistribution of available credits, and never claims that everyone is fully settled while the pool is under-collected. Tests were added for both target scenarios.
 
-Implemented import work included:
+### USER - Messy Contribution Import Request
 
-- CSV file upload in the existing UI.
-- A downloadable sample CSV.
-- CSV parsing with quoted-field support.
-- Name normalization and merging.
-- Amount normalization and non-negative validation.
-- Conservative exact duplicate handling.
-- Invalid-row reporting with row number and reason.
-- Merge reporting.
-- Import summary counters.
-- Recalculation of people, payments, balances, fair shares, shortfall, and settlement transfers.
+> Extend the current Farewell Fund application with CSV import for messy past contributions.
+>
+> Imported data may contain duplicate entries, capitalization and formatting variants, inconsistent amount formats, invalid rows, empty names, and invalid amounts. Add a clearly visible Import Contributions feature, support `name,amount`, normalize names and amounts, merge people, handle duplicates carefully, report invalid rows and merges, update People & Payments, and recalculate balances and settlements.
+>
+> Support formats such as `1000`, `1000.00`, `₹1000`, `₹1,000`, and `1,000.00`. Do not crash on malformed CSV. Do not incorrectly delete legitimate multiple payments. Add tests for valid rows, duplicates, capitalization, whitespace, currency formats, invalid rows, zero values, negative values, malformed CSV, multiple payments, and different targets. Update the environment documentation and AI log.
 
-## Phase 7 - Import Testing
+### AI - Import Implementation Response
 
-The provided sample CSV was tested through the browser-like import flow. It included valid contributions, Rahul/rahul/RAHUL capitalization variants, multiple currency formats, `Rohit,abc`, and a missing-name row.
+The importer was implemented in `importer.js` with a CSV state-machine parser, amount normalization, name normalization, exact duplicate handling, merged-person aggregation, rejected-row reporting, and merge reporting. The UI received a CSV upload form, sample download link, import summary, invalid-row details, and merge details. Imported values flow through the existing people, fair-share, balance, shortfall, and settlement logic.
 
-Observed sample result:
+The chosen duplicate rule is conservative: a later row is removed only when its trimmed, case-insensitive name field and trimmed amount field match an earlier row. Differently formatted same-value payments remain legitimate separate contributions. The first clean display spelling is preserved for normalized names.
+
+A FileReader fallback was added after a browser-like test environment did not provide `File.text()`.
+
+### USER - Final Submission Audit Request
+
+> Perform a final strict audit against both the original problem and the new Twist requirement. Do not redesign or add unnecessary features. Run and test the application, fix issues, and verify the ₹6000 scenario, ₹8000 scenario, messy CSV, exact duplicate row, invalid row, and multiple legitimate payments.
+>
+> Also verify the environment documentation, no secrets, correct run instructions, no browser/runtime errors, and report PASS/FAIL for each major requirement.
+
+### AI - Final Audit Response
+
+The strict audit passed. Browser-like UI checks covered the ₹6000 scenario, ₹8000 under-collected scenario, sample CSV import, exact duplicate handling, legitimate repeated payments, malformed CSV, manual entry after import, payment editing, settlement updates, and runtime error capture.
+
+The sample import produced:
 
 - Rows read: 10.
 - Imported: 8.
-- Duplicates removed: 0, because the sample did not contain an exact duplicate row.
+- Duplicates removed: 0 because the sample did not contain an exact duplicate.
 - Names merged: 3.
 - Rejected: 2.
 
-Additional test data verified one exact duplicate removal and separately formatted same-value contributions remaining legitimate. Malformed unterminated CSV was also tested and reported without crashing the application.
+The Node settlement and importer test suites passed. The live static server served the application and sample import assets. No secret-like files were found.
 
-## Phase 8 - Documentation
+### USER - Documentation-Only Request
 
-AI assistance was used to update the documentation in `environment/`:
+> Work only on the documentation inside the existing `environment/` folder. Update `environment/README.md`, `environment/reasoning.md`, and `environment/ai_logs.md` so they accurately match the final implementation. Do not change application code. Do not fabricate conversations or include hidden chain-of-thought.
 
-- `environment/README.md` documents the final project, setup, workflow, calculations, import rules, validation, tests, and limitations.
-- `environment/reasoning.md` documents high-level engineering decisions and formulas.
-- `environment/ai_logs.md` records this chronological high-level activity.
+### AI - Documentation Response
 
-## Phase 9 - Final Verification
+The three environment documentation files were updated to describe the final vanilla HTML/CSS/JavaScript application, Node.js static server, calculations, settlement behavior, under-collected pools, CSV import, normalization, duplicate policy, invalid-row reporting, testing, limitations, and verified development history.
 
-The final verification covered:
+### USER - Current AI Log Request
 
-- Application startup with `npm start`.
-- Manual Add person and multiple-person entry.
-- Payment editing and automatic dashboard updates.
-- Fund name and target editing.
-- Reset and validation behavior.
-- ₹6000 fully collected settlement case.
-- ₹8000 under-collected settlement case.
-- CSV import and sample download asset.
-- Name normalization and merging.
-- Currency amount normalization.
-- Exact duplicate handling.
-- Invalid-row reporting.
-- Malformed CSV handling.
-- Imported data flowing into balances and settlements.
-- Manual entry after import.
-- `npm test` passing for settlement and importer suites.
-- JavaScript syntax and static-server asset checks.
-- No secret-like files found in the repository.
+> Update only `environment/ai_logs.md`.
+>
+> The assessment instruction says: "ai_logs.md -> copy paste the whole chat".
+>
+> Include the actual AI-assisted conversation available to us, not just a high-level summary. Do not fabricate or invent conversation, fake responses, hidden chain-of-thought, secrets, or unavailable history. Include actual user prompts/instructions and AI responses genuinely available in the current workspace/context. Preserve chronology, clearly label USER and AI, include the important implementation, debugging, testing, The Twist, CSV import, and documentation discussions, and state exactly what portion was unavailable.
 
-## Transcript Availability
+### AI - Current Response
 
-Full chat transcript is not automatically available inside the coding workspace. This document records the verified high-level AI-assisted development activities rather than fabricating a transcript.
+This file was replaced with the transcript-style record above. It includes the materially available user requests and assistant responses, excludes private reasoning and secrets, and explicitly states that the complete historical raw chat and tool telemetry are not automatically available inside the coding workspace.
+
+## Assessment / Development Tasks Index
+
+- **Initial problem:** Track an equal-share group pool and farewell gift contributions.
+- **Implementation:** Vanilla HTML/CSS/JavaScript frontend, Node.js static server, localStorage, settlement engine, and tests.
+- **UI debugging:** Fixed the non-working Add person interaction and verified event handling.
+- **Settlement logic:** Calculated fair shares, balances, and debtor-to-creditor transfers.
+- **Under-collected pool:** Added shortfall status and redistribution-only messaging for the ₹8000 target with ₹6000 collected.
+- **The Twist:** Added messy contribution import requirements.
+- **CSV import:** Added parsing, name/amount normalization, merging, duplicate handling, sample data, and reporting.
+- **Testing:** Ran settlement tests, importer tests, syntax checks, HTTP checks, and browser-like DOM flows.
+- **Final verification:** Verified ₹6000, ₹8000, sample import, duplicate rows, invalid rows, malformed CSV, manual entry after import, and no captured runtime errors.
+- **Documentation:** Updated `environment/README.md`, `environment/reasoning.md`, and this `environment/ai_logs.md`.
+
+## Transcript Availability Note
+
+Full chat transcript is not automatically available inside the coding workspace. The file contains the actual conversation content materially available in the current context, while unavailable historical messages, hidden reasoning, system instructions, and raw tool telemetry are not fabricated.
